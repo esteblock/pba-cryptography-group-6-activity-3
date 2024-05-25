@@ -28,7 +28,9 @@ fn main() {
     let mut points_0 =100;
     let mut points_1 =100;
 
-    const SEED1: &str = "lunar antique thank school space garden soda cigar glove despair master pumpkin";
+    while points_0 > 0 && points_1 > 0 {
+
+        const SEED1: &str = "lunar antique thank school space garden soda cigar glove despair master pumpkin";
     const SEED2: &str = "parade method erupt shock bacon wait follow limb onion laugh exhibit whip";
 
     let player_0 = generate_ed25519_pair(SEED1);
@@ -82,10 +84,15 @@ fn main() {
     let vrf_output_1 = (hash_with_blake(&proof_1.0)[0] % 52 ) % 13;
 
     // THEY CALCULATE THEIR BET,
-    let bet_0 = ((vrf_output_0 as f32) / 12.0 * 100.0) as u32;
-    let bet_1 = ((vrf_output_1 as f32) / 12.0 * 100.0) as u32;
+    // bet is linear function of their card (from 2, 3, to A), 
+    // bet is from 1 to their total points
+    let bet_0 = ((vrf_output_0 as f32) / 12.0 * points_0 as f32 - 1.0) as u32 +1;
+    let bet_1 = ((vrf_output_1 as f32) / 12.0 * points_1 as f32 -1.0 ) as u32 +1 ;
+
+    println!("BETS Player 0: {} Player 1: {}", bet_0, bet_1);
 
     let common_bet = min(bet_0, bet_1);
+    println!("Common Bet: {}", common_bet);
 
     // they now exchange the signatures, exchange them and verify their output and they verify\
     match proof_0.verify(&common_random[..], &player_0.public()) {
@@ -115,13 +122,12 @@ fn main() {
             points_1 += bet_0;
         }
     }
+println!("Player 0: {} Player 1: {}", points_0, points_1)
+        
+    }
 
+    
 
-
-
-
-
-    todo!()
 }
 /*
 Players start with 100 points each
