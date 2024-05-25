@@ -45,11 +45,15 @@ pub fn generate_ecdsa_pair() -> ECDSAPair {
 /// "0", where "children" is a hard derivation, and "0" is soft.
 pub fn generate_derived_addresses_from_sr25519_pair() -> Sr25519Pair {
     let derivation_path_iter = vec![
-        DeriveJunction::hard("children".as_bytes()), 
-        DeriveJunction::soft(u32::to_le_bytes(0))
-    ].into_iter();
+        DeriveJunction::hard("children".as_bytes()),
+        DeriveJunction::soft(u32::to_le_bytes(0)),
+    ]
+    .into_iter();
 
-    generate_sr25519_pair().derive(derivation_path_iter, None).unwrap().0
+    generate_sr25519_pair()
+        .derive(derivation_path_iter, None)
+        .unwrap()
+        .0
 }
 
 /// Generate a child keypair corresponding to the address passed in. The address is provided in
@@ -57,11 +61,15 @@ pub fn generate_derived_addresses_from_sr25519_pair() -> Sr25519Pair {
 /// soft derivations.
 pub fn generate_derived_public_from_address(address: &str) -> Sr25519Public {
     let derivation_path_iter = vec![
-        DeriveJunction::soft("test_derivation".as_bytes()), 
-        DeriveJunction::soft(u32::to_le_bytes(5))
-    ].into_iter();
+        DeriveJunction::soft("test_derivation".as_bytes()),
+        DeriveJunction::soft(u32::to_le_bytes(5)),
+    ]
+    .into_iter();
 
-	Sr25519Public::from_string(address).unwrap().derive(derivation_path_iter).unwrap()
+    Sr25519Public::from_string(address)
+        .unwrap()
+        .derive(derivation_path_iter)
+        .unwrap()
 }
 
 /// Generate the substrate test pair corresponding to Alice in sr25519
@@ -77,7 +85,9 @@ pub fn alice_ecdsa() -> ECDSAPair {
 /// Generate the sr25519 keypair corresponding to the const bip39 phrase using the password
 /// 'hunter2'
 pub fn generate_with_password() -> Sr25519Pair {
-    Sr25519Pair::from_phrase(BIP39_STR, Some("hunter2")).unwrap().0
+    Sr25519Pair::from_phrase(BIP39_STR, Some("hunter2"))
+        .unwrap()
+        .0
 }
 
 // Now that we have some familiarity with seeds, phrases, and password derivation, let's look a
@@ -146,21 +156,21 @@ static ENTROPY_TO_WORDS: [&str; 16] = [
 
 // I write this function here so I can re-use it in 2 exercices
 pub fn bytes_vec_to_phrase(bytes_vec: Vec<u8>) -> String {
-
     // We construct the phrase comparing every char from the encoded hex with the
     // Every char that is result of the map of the list of entropy words
-    let phrase: String = hex::encode(bytes_vec).chars()
-    .flat_map(|char| {
-        ENTROPY_TO_WORDS.iter()
-            .filter(move |&&word| WORDS_TO_ENTROPY[word] == char)
-            .map(|&word| word)
-    })
-    .collect::<Vec<&str>>()
-    .join(" "); // we add spaces  and create the phrase as a string
+    let phrase: String = hex::encode(bytes_vec)
+        .chars()
+        .flat_map(|char| {
+            ENTROPY_TO_WORDS
+                .iter()
+                .filter(move |&&word| WORDS_TO_ENTROPY[word] == char)
+                .map(|&word| word)
+        })
+        .collect::<Vec<&str>>()
+        .join(" "); // we add spaces  and create the phrase as a string
 
     phrase
 }
-
 
 /// Convert a tiny seed to a phrase, based on the u32 interpreted as little endian bytes
 pub fn seed_to_phrase(seed: TinySeed) -> String {
@@ -171,9 +181,9 @@ pub fn seed_to_phrase(seed: TinySeed) -> String {
 
 pub fn words_to_bytes_vec(words: Vec<&str>) -> Result<Vec<u8>, ()> {
     // For every word, we find the hex char and create a list of hex characters
-    let words_in_hex: String = words.iter()
-        .map
-        (|word| {
+    let words_in_hex: String = words
+        .iter()
+        .map(|word| {
             match WORDS_TO_ENTROPY.get(word) {
                 Some(&char) => Ok(char.to_string()),
                 None => Err(()), // when we dont find a word in the map
@@ -183,29 +193,33 @@ pub fn words_to_bytes_vec(words: Vec<&str>) -> Result<Vec<u8>, ()> {
 
     // Then return the decoded in bytes
     Ok(hex::decode(words_in_hex).unwrap())
-} 
+}
 
 /// Convert a phrase to a tiny seed. Errors if any words are not in the wordlist, or there is
 /// the wrong number of words. This function should never panic.
 pub fn phrase_to_seed(phrase: &str) -> Result<TinySeed, ()> {
     //First we need to create a vector of words:
     let words: Vec<&str> = phrase.split_whitespace().collect();
-    if words.len()!= 8 {
-        return Err(()) // if different thatn 8
+    if words.len() != 8 {
+        return Err(()); // if different thatn 8
     }
     let seed_in_bytes = words_to_bytes_vec(words)?; // we can return the error
-    
+
     // Now we need to assume that the bytes are 4?
     // So we will convert it into a [u8; 4] vec
     // If not it will return an err
     let seed_in_bytes_vec = if seed_in_bytes.len() == 4 {
-        Ok([seed_in_bytes[0], seed_in_bytes[1], seed_in_bytes[2], seed_in_bytes[3]])
+        Ok([
+            seed_in_bytes[0],
+            seed_in_bytes[1],
+            seed_in_bytes[2],
+            seed_in_bytes[3],
+        ])
     } else {
         Err(()) // double check
     };
-    
-    Ok(TinySeed(u32::from_le_bytes(seed_in_bytes_vec?)))
 
+    Ok(TinySeed(u32::from_le_bytes(seed_in_bytes_vec?)))
 }
 
 /// A trucated hash function over a u32. We only use 1 byte of the hash value as a the checksum
@@ -222,7 +236,7 @@ pub fn seed_to_phrase_with_checksum(seed: TinySeed) -> String {
     let first_part_phrase = seed_to_phrase(seed);
     let checksum_phrase = bytes_vec_to_phrase(vec![hash_u8].to_vec());
 
-    first_part_phrase + &String::from(" ") + &checksum_phrase 
+    first_part_phrase + &String::from(" ") + &checksum_phrase
 }
 
 /// Convert a phrase which includes a checksum to a tiny seed. Errors if any words are not in
@@ -233,17 +247,17 @@ pub fn phrase_to_seed_with_checksum(phrase: &str) -> Result<TinySeed, ()> {
     // First, check the checksum
     let words: Vec<&str> = phrase.split_whitespace().collect();
     // Get all the words but the last 2 to get the seed_phrase
-    let seed_phrase =  words[..words.len() - 2].to_vec();
+    let seed_phrase = words[..words.len() - 2].to_vec();
     let seed = phrase_to_seed(&seed_phrase.join(" "))?; // will forward the error
 
-    // Get the last words to calculate the checksum hash 
-    let checksum_phrase: Vec<&str>  = words.iter().rev().take(2).rev().cloned().collect();
+    // Get the last words to calculate the checksum hash
+    let checksum_phrase: Vec<&str> = words.iter().rev().take(2).rev().cloned().collect();
     let checksum_bytes_vec = words_to_bytes_vec(checksum_phrase)?;
     // Checsum bytes vec should have only one element
     let checksum_byte = checksum_bytes_vec[0];
-    let expected_checksum =  truncated_hash_u32(seed.0);
+    let expected_checksum = truncated_hash_u32(seed.0);
 
-    if checksum_byte != expected_checksum{
+    if checksum_byte != expected_checksum {
         return Err(());
     }
     println!("checksum_byte {:?}", checksum_byte);
