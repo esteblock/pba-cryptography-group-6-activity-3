@@ -14,7 +14,7 @@ use sp_core::{
     Pair, Public,
 };
 use rand::{Rng, rngs::SmallRng, SeedableRng};
-
+use p1_hashing::{hash_with_blake};
 
 pub fn generate_ed25519_pair(bip39_str: &str) -> Ed25519Pair {
     Ed25519Pair::from_phrase(bip39_str, None).unwrap().0
@@ -33,8 +33,34 @@ fn main() {
     let randomness_0: [u8; 4] = rng_0.gen();
     let randomness_1: [u8; 4] = rng_1.gen();
 
-    dbg!(randomness_0);
-    dbg!(randomness_1);
+    // dbg!(randomness_0);
+    // dbg!(randomness_1);
+
+    // The random values have been shared now
+    let commited_hash_0=hash_with_blake(&randomness_0);
+    let commited_hash_1=hash_with_blake(&randomness_1);
+
+    // now the random are shared
+    let revealed_0 = randomness_0;
+    let revealed_1 = randomness_1;
+
+    // now the random are verified from the commitments
+    match hash_with_blake(&revealed_0) == commited_hash_0 {
+        true => println!("oh yea"),
+        false => panic!("hes cheating")
+
+    }
+    // now the random are verified from the commitments
+    match hash_with_blake(&revealed_1) == commited_hash_1 {
+        true => println!("oh yea"),
+        false => panic!("hes cheating")
+    }
+
+    // we will generate a comon ramdon suming the two revealed
+    let value_0 = u32::from_le_bytes(revealed_0);
+    let value_1 = u32::from_le_bytes(revealed_1);
+    let sum = value_0 + value_1;
+    let common_random = sum.to_le_bytes();
 
 
 
