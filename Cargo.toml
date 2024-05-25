@@ -21,11 +21,7 @@ sp-core = { git = "https://github.com/paritytech/substrate", default-features = 
 sp-runtime = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.42", features = [
     "std",
 ] }
-schnorrkel = { version = "0.10.2", features = [
-    "preaudit_deprecated",
-    "u64_backend",
-    "std",
-] }
+schnorrkel = { version = "0.10.2", features = ["preaudit_deprecated", "u64_backend", "std"] }
 aes = "0.8.1"
 aes-gcm-siv = "0.11.1"
 reed-solomon = "0.2.1"
